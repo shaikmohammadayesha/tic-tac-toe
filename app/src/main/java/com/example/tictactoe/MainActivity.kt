@@ -4,12 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -56,6 +54,7 @@ class MainActivity : ComponentActivity() {
 fun TicTacToe(
     modifier: Modifier = Modifier
 ){
+    val gameMode: String? = null
     val playerX = R.drawable.icons8_x_64
     val playerO = R.drawable.icons8_o_64
     val gameCells = remember { mutableStateListOf("", "", "", "", "", "", "", "", "") }
@@ -73,7 +72,7 @@ fun TicTacToe(
         cellsEnabled = true
 
     }
-    val onClickAction: (Int) -> Unit =  { index ->
+    val onCellClick: (Int) -> Unit =  { index ->
         println("Button $index clicked")
         if (gameCells[index].isEmpty()) {
             gameCells[index] = currentPlayer
@@ -119,7 +118,30 @@ fun TicTacToe(
 
             .padding(16.dp)
     ){
-        Board(modifier, onClickAction, gameCells, cellsEnabled, playerX, playerO)
+        Board(modifier, onCellClick, gameCells, cellsEnabled, playerX, playerO)
+       if (gameMode.isNullOrEmpty()){
+           Row(
+               modifier = modifier
+                   .fillMaxWidth()
+
+           ){
+
+               Button(
+                   onClick = {/*toDo*/},
+                   modifier = Modifier.weight(1f),
+                   shape = RoundedCornerShape(5.dp)
+               ){
+                   Text(text="Human")
+               }
+               Button(
+                   onClick = {/*toDo*/},
+                   modifier = Modifier.weight(1f),
+                   shape = RoundedCornerShape(5.dp)
+               ){
+                   Text(text = "Computer")
+               }
+           }
+       }
         Reset( "Reset",
             modifier = Modifier
             .align(Alignment.BottomCenter)
@@ -130,6 +152,9 @@ fun TicTacToe(
     }
 
 }
+
+
+
 
 
 @Composable
