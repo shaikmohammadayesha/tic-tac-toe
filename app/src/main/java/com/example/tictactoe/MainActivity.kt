@@ -284,7 +284,7 @@ private fun nxtMove(gameCells: List<String>, cmp: String, person: String): Int {
     possibleHorizontalWin(gameCells,person, rows)?:
     possibleVerticalWin(gameCells,person, cols)?:
     possibleDiagonalWin(gameCells,person,diaogs)?:
-    findEmptyCell(gameCells,rows)
+    findEmptyCell(gameCells)
 
     return cellToPlay
 }
@@ -324,13 +324,11 @@ private fun possibleDiagonalWin(buttonTexts: List<String>, currentPlayer: String
 }
 
 private fun findEmptyCell(
-    gameCells: List<String>,
-    rows: List<List<Int>>
+    gameCells: List<String>
 ): Int {
-    for (row in rows) {
-        return row.first { index ->  gameCells[index].isEmpty()}
-    }
-    return 0
+    val emptyIndices = gameCells.indices.filter { index -> gameCells[index].isEmpty() }
+
+    return if (emptyIndices.isNotEmpty()) emptyIndices.random() else 0
 }
 
 private fun checkForWin(currentPlayer: String, buttonTexts: List<String>): Boolean{
