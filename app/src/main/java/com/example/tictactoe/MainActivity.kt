@@ -75,11 +75,28 @@ private fun AppLayout(){
     var boardCellsEnabeled by remember { mutableStateOf(false) }
     var cmpMoveCell by remember { mutableIntStateOf(0) }
 
+    val rows = listOf(
+        listOf(0,1,2),
+        listOf(3,4,5),
+        listOf(6,7,8)
+    )
+    val cols = listOf(
+        listOf(0,3,6),
+        listOf(1,4,7),
+        listOf(2,5,8)
+    )
+    val diaogs = listOf(
+        listOf(0,4,8),
+        listOf(2,4,6)
+    )
+
+    val allCellCombination = rows + cols + diaogs
+
     fun playTheCell(index: Int, player: String) {
         if (gameCells[index].isEmpty()) {
             gameCells[index] = player
             cellsPlayed++
-            if (checkForWin(player, gameCells)){
+            if (checkForWin(player, gameCells, allCellCombination)){
                 winner = player
                 boardCellsEnabeled = false
 
@@ -100,7 +117,7 @@ private fun AppLayout(){
     val onCellClick: (Int) -> Unit =  { index ->
          playTheCell(index, currentPlayer)
          if (gameMode == GameMode.COMPUTER && winner == "") {
-             cmpMoveCell = nxtMove(gameCells, if (currentPlayer == "X") "O" else "X", currentPlayer)
+             cmpMoveCell = nxtMove(gameCells, if (currentPlayer == "X") "O" else "X", currentPlayer, allCellCombination)
              playTheCell(cmpMoveCell, if (currentPlayer == "X") "O" else "X")
          } else {
              currentPlayer = if (currentPlayer == "X") "O" else "X"
@@ -263,61 +280,32 @@ private fun Reset(modifier: Modifier,onResetClick: () -> Unit){
 }
 
 
-private fun nxtMove(gameCells: List<String>, cmp: String, person: String): Int {
-    val rows = listOf(
-        listOf(0,1,2),
-        listOf(3,4,5),
-        listOf(6,7,8)
-    )
-    val cols = listOf(
-        listOf(0,3,6),
-        listOf(1,4,7),
-        listOf(2,5,8)
-    )
-    val diaogs = listOf(
-        listOf(0,4,8),
-        listOf(2,4,6)
-    )
-    val cellToPlay: Int = possibleHorizontalWin(gameCells,cmp, rows)?:
-    possibleVerticalWin(gameCells,cmp, cols)?:
-    possibleDiagonalWin(gameCells,cmp,diaogs)?:
-    possibleHorizontalWin(gameCells,person, rows)?:
-    possibleVerticalWin(gameCells,person, cols)?:
-    possibleDiagonalWin(gameCells,person,diaogs)?:
-    findEmptyCell(gameCells)
+private fun nxtMove(gameCells: List<String>, cmp: String, person: String, allCellCombination: List<List<Int>>): Int {
 
-    return cellToPlay
-}
+    val winMove: Int? = possibleWinBlockCheck(gameCells,cmp, allCellCombination)
 
-
-private fun possibleHorizontalWin(buttonTexts: List<String>, currentPlayer: String, rows: List<List<Int>>): Int? {
-    for (row in rows) {
-        val rowValue = row.count {index -> buttonTexts[index] == currentPlayer}
-        val emptyCells = row.count { index -> buttonTexts[index].isEmpty() }
-        if (rowValue == 2 && emptyCells == 1){
-            return row.first { index -> buttonTexts[index].isEmpty() }
-        }
+    if (winMove != null){
+        return winMove
     }
-    return null
-}
-
-private fun possibleVerticalWin(buttonTexts: List<String>, currentPlayer: String, cols: List<List<Int>>): Int? {
-    for (col in cols) {
-        val colValue = col.count {index -> buttonTexts[index] == currentPlayer}
-        val emptyCells = col.count { index -> buttonTexts[index].isEmpty() }
-        if (colValue == 2 && emptyCells == 1){
-            return col.first { index -> buttonTexts[index].isEmpty() }
-        }
+    val blockMove: Int? = possibleWinBlockCheck(gameCells,person, allCellCombination)
+    if (blockMove != null){
+        return blockMove
     }
-    return null
+
+    if (gameCells[4].isEmpty()){
+        return 4
+    }
+
+    return findEmptyCell(gameCells)
 }
 
-private fun possibleDiagonalWin(buttonTexts: List<String>, currentPlayer: String, diaogs: List<List<Int>>): Int? {
-    for (diaog in diaogs) {
-        val diaogValue = diaog.count {index -> buttonTexts[index] == currentPlayer}
-        val emptyCells = diaog.count { index -> buttonTexts[index].isEmpty() }
-        if (diaogValue == 2 && emptyCells == 1){
-            return diaog.first { index -> buttonTexts[index].isEmpty() }
+private fun possibleWinBlockCheck (gameCells: List<String>, targetPlayer: String, allCells: List<List<Int>>) : Int? {
+    for (cellCombination in allCells){
+        val targetPlayedCount = cellCombination.count { index -> gameCells[index] == targetPlayer}
+        val emptyCellsCount = cellCombination.count { index -> gameCells[index].isEmpty() }
+
+        if (targetPlayedCount == 2 && emptyCellsCount == 1){
+            return cellCombination.first { gameCells[it].isEmpty() }
         }
     }
     return null
@@ -331,30 +319,19 @@ private fun findEmptyCell(
     return if (emptyIndices.isNotEmpty()) emptyIndices.random() else 0
 }
 
-private fun checkForWin(currentPlayer: String, buttonTexts: List<String>): Boolean{
+private fun checkForWin(currentPlayer: String, buttonTexts: List<String>, allCellCombination: List<List<Int>>): Boolean{
     //012 036 048
     //345 147 246
     //678 258
-    return horizontalCheck(buttonTexts, currentPlayer) || verticalCheck(buttonTexts, currentPlayer) || diagonalCheck(buttonTexts, currentPlayer)
+    for(line in allCellCombination){
+        val targetPlayedCount = line.count {index -> buttonTexts[index] == currentPlayer}
+        if (targetPlayedCount == 3){
+            return true
+        }
+    }
+    return false
 
 
-}
-
-private fun verticalCheck(buttonTexts: List<String>, currentPlayer: String): Boolean {
-    return (buttonTexts[0] == currentPlayer && buttonTexts[3] == currentPlayer && buttonTexts[6] == currentPlayer) ||
-        (buttonTexts[1] == currentPlayer && buttonTexts[4] == currentPlayer && buttonTexts[7] == currentPlayer) ||
-        (buttonTexts[2] == currentPlayer && buttonTexts[5] == currentPlayer && buttonTexts[8] == currentPlayer)
-}
-
-private fun horizontalCheck(buttonTexts: List<String>, currentPlayer: String): Boolean {
-    return (buttonTexts[0] == currentPlayer && buttonTexts[1] == currentPlayer && buttonTexts[2] == currentPlayer) ||
-        (buttonTexts[3] == currentPlayer && buttonTexts[4] == currentPlayer && buttonTexts[5] == currentPlayer) ||
-        (buttonTexts[6] == currentPlayer && buttonTexts[7] == currentPlayer && buttonTexts[8] == currentPlayer)
-}
-
-private fun diagonalCheck(buttonTexts: List<String>, currentPlayer: String): Boolean {
-    return (buttonTexts[0] == currentPlayer && buttonTexts[4] == currentPlayer && buttonTexts[8] == currentPlayer) ||
-        (buttonTexts[2] == currentPlayer && buttonTexts[4] == currentPlayer && buttonTexts[6] == currentPlayer)
 }
 
 @Preview(showBackground = true)
