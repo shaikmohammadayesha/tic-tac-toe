@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,9 +34,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.tictactoe.ui.theme.TicTacToeTheme
-import kotlin.text.isEmpty
 
 
+/*  App Layout
+*
+* status Bar
+*
+* singleCell, Board,
+*
+* game mode selection
+*
+* reset
+*
+* */
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,9 +60,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class GameMode{
-    HUMAN, COMPUTER, NULL
-}
+//enum class GameMode{
+//    HUMAN, COMPUTER, NULL
+//}
 
 
 @Composable
@@ -65,14 +74,15 @@ fun TicTacToe(
 
 @Composable
 private fun AppLayout(){
-    var gameMode by remember { mutableStateOf(GameMode.NULL) }
+    var gameMode: GameMode? by remember { mutableStateOf(null) }
+    val gameLogic by remember { mutableStateOf(ComputerGameLogic()) }
     val playerX = R.drawable.icons8_x_64
     val playerO = R.drawable.icons8_o_64
     val gameCells = remember { mutableStateListOf("", "", "", "", "", "", "", "", "") }
     var currentPlayer by remember { mutableStateOf("X") }
     var winner by remember { mutableStateOf("") }
     var cellsPlayed by remember { mutableIntStateOf(0) }
-    var boardCellsEnabeled by remember { mutableStateOf(false) }
+    var boardCellsEnabled by remember { mutableStateOf(false) }
     var cmpMoveCell by remember { mutableIntStateOf(0) }
 
     val rows = listOf(
@@ -98,7 +108,7 @@ private fun AppLayout(){
             cellsPlayed++
             if (checkForWin(player, gameCells, allCellCombination)){
                 winner = player
-                boardCellsEnabeled = false
+                boardCellsEnabled = false
 
             }
         }
@@ -108,16 +118,16 @@ private fun AppLayout(){
         for (i in gameCells.indices){
             gameCells[i] = ""
         }
-        gameMode = GameMode.NULL
+        gameMode = null
         cellsPlayed = 0
         winner = ""
-        boardCellsEnabeled = false
+        boardCellsEnabled = false
     }
 
     val onCellClick: (Int) -> Unit =  { index ->
          playTheCell(index, currentPlayer)
          if (gameMode == GameMode.COMPUTER && winner == "") {
-             cmpMoveCell = nxtMove(gameCells, if (currentPlayer == "X") "O" else "X", currentPlayer, allCellCombination)
+             cmpMoveCell = gameLogic.nxtMove(gameCells, if (currentPlayer == "X") "O" else "X", currentPlayer, allCellCombination)
              playTheCell(cmpMoveCell, if (currentPlayer == "X") "O" else "X")
          } else {
              currentPlayer = if (currentPlayer == "X") "O" else "X"
@@ -151,7 +161,7 @@ private fun AppLayout(){
                 .weight(3f)
                 .fillMaxSize()
         ){
-            Board(Modifier, onCellClick, gameCells, boardCellsEnabeled, playerX, playerO)
+            Board(Modifier, onCellClick, gameCells, boardCellsEnabled, playerX, playerO)
         }
         Box(
             modifier = Modifier
@@ -168,23 +178,23 @@ private fun AppLayout(){
                     Button(
                         onClick = {
                             gameMode = GameMode.HUMAN
-                            boardCellsEnabeled = true
+                            boardCellsEnabled = true
 
                         },
                         modifier = Modifier.weight(1f).padding(start = 5.dp,  end = 5.dp, top = 20.dp),
                         shape = RoundedCornerShape(5.dp),
-                        enabled = (gameMode == GameMode.NULL)
+                        enabled = (gameMode == null)
                     ){
                         Text(text="Human")
                     }
                     Button(
                         onClick = {
                             gameMode = GameMode.COMPUTER
-                            boardCellsEnabeled = true
+                            boardCellsEnabled = true
                         },
                         modifier = Modifier.weight(1f).padding(start = 5.dp,  end = 5.dp, top = 20.dp),
                         shape = RoundedCornerShape(5.dp),
-                        enabled = (gameMode == GameMode.NULL)
+                        enabled = (gameMode == null)
                     ){
                         Text(text = "Computer")
                     }
@@ -200,8 +210,8 @@ private fun AppLayout(){
     }
 }
 
-private fun statusBar(gameMode: GameMode, winner: String, cellsPlayed: Int, currentPlayer: String, playerX: Int, playerO: Int): String {
-    return if (gameMode == GameMode.NULL) {
+private fun statusBar(gameMode: GameMode?, winner: String, cellsPlayed: Int, currentPlayer: String, playerX: Int, playerO: Int): String {
+    return if (gameMode == null) {
         "Select Game Mode"
     } else if (winner != "") {
         if (winner == "X") "X wins" else "O wins"
@@ -280,44 +290,7 @@ private fun Reset(modifier: Modifier,onResetClick: () -> Unit){
 }
 
 
-private fun nxtMove(gameCells: List<String>, cmp: String, person: String, allCellCombination: List<List<Int>>): Int {
 
-    val winMove: Int? = possibleWinBlockCheck(gameCells,cmp, allCellCombination)
-
-    if (winMove != null){
-        return winMove
-    }
-    val blockMove: Int? = possibleWinBlockCheck(gameCells,person, allCellCombination)
-    if (blockMove != null){
-        return blockMove
-    }
-
-    if (gameCells[4].isEmpty()){
-        return 4
-    }
-
-    return findEmptyCell(gameCells)
-}
-
-private fun possibleWinBlockCheck (gameCells: List<String>, targetPlayer: String, allCells: List<List<Int>>) : Int? {
-    for (cellCombination in allCells){
-        val targetPlayedCount = cellCombination.count { index -> gameCells[index] == targetPlayer}
-        val emptyCellsCount = cellCombination.count { index -> gameCells[index].isEmpty() }
-
-        if (targetPlayedCount == 2 && emptyCellsCount == 1){
-            return cellCombination.first { gameCells[it].isEmpty() }
-        }
-    }
-    return null
-}
-
-private fun findEmptyCell(
-    gameCells: List<String>
-): Int {
-    val emptyIndices = gameCells.indices.filter { index -> gameCells[index].isEmpty() }
-
-    return if (emptyIndices.isNotEmpty()) emptyIndices.random() else 0
-}
 
 private fun checkForWin(currentPlayer: String, buttonTexts: List<String>, allCellCombination: List<List<Int>>): Boolean{
     //012 036 048

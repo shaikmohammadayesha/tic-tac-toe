@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Tic Tac Toe</string>
+    <string name="human_mode">Human</string>
+    <string name="computer_mode">Computer</string>
+    <string name="current_player">Player %s</string>
+    <string name="winner_is">Player %s wins</string>
+    <string name="select_game_mode">Select game mode</string>
 </resources>
