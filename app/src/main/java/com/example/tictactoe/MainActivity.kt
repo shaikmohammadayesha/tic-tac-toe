@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -140,76 +140,73 @@ private fun AppLayout(){
 
     }
 
-    Column(
+    Scaffold(
+        topBar = {
+            statusBar(gameMode, winner, cellsPlayed, currentPlayer, playerX, playerO)
+        },
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
-    ) {
-        Box(
+    ) {innerPadding ->
+        Column(
             modifier = Modifier
-                .wrapContentSize()
-        ){
-            statusBar(gameMode, winner, cellsPlayed, currentPlayer, playerX, playerO)
-//            Text(
-//                text = stringResource(statusBar(gameMode, winner, cellsPlayed, currentPlayer, playerX, playerO)),
-//                fontSize = 20.sp,
-//                color = Color.Green,
-//                textAlign = TextAlign.Center,
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+//            Box(
 //                modifier = Modifier
-//                    .padding(15.dp)
-//                    .fillMaxWidth()
-//                    .align(Alignment.BottomCenter)
-//
-//            )
-        }
-        Box(
-            modifier = Modifier
-                .weight(3f)
-                .fillMaxSize()
-        ){
-            Board(Modifier, onCellClick, gameCells, boardCellsEnabled, playerX, playerO)
-        }
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
-        ){
-            Column() {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
+//                    .wrapContentSize()
+//            ){
+//                statusBar(gameMode, winner, cellsPlayed, currentPlayer, playerX, playerO)
+//            }
+            Box(
+                modifier = Modifier
+                    .weight(3f)
+                    .fillMaxSize()
+            ){
+                Board(Modifier, onCellClick, gameCells, boardCellsEnabled, playerX, playerO)
+            }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+            ){
+                Column() {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
 
-                ){
-
-                    Button(
-                        onClick = {
-                            gameMode = GameMode.HUMAN
-                            boardCellsEnabled = true
-
-                        },
-                        modifier = Modifier.weight(1f).padding(start = 5.dp,  end = 5.dp, top = 20.dp),
-                        shape = RoundedCornerShape(5.dp),
-                        enabled = (gameMode == null)
                     ){
-                        Text(text="Human")
-                    }
-                    Button(
-                        onClick = {
-                            gameMode = GameMode.COMPUTER
-                            boardCellsEnabled = true
-                        },
-                        modifier = Modifier.weight(1f).padding(start = 5.dp,  end = 5.dp, top = 20.dp),
-                        shape = RoundedCornerShape(5.dp),
-                        enabled = (gameMode == null)
-                    ){
-                        Text(text = "Computer")
-                    }
-                }
 
-                Reset(
-                    modifier = Modifier
-                ){
-                    onResetClick()
+                        Button(
+                            onClick = {
+                                gameMode = GameMode.HUMAN
+                                boardCellsEnabled = true
+
+                            },
+                            modifier = Modifier.weight(1f).padding(start = 5.dp,  end = 5.dp, top = 20.dp),
+                            shape = RoundedCornerShape(5.dp),
+                            enabled = (gameMode == null)
+                        ){
+                            Text(text="Human")
+                        }
+                        Button(
+                            onClick = {
+                                gameMode = GameMode.COMPUTER
+                                boardCellsEnabled = true
+                            },
+                            modifier = Modifier.weight(1f).padding(start = 5.dp,  end = 5.dp, top = 20.dp),
+                            shape = RoundedCornerShape(5.dp),
+                            enabled = (gameMode == null)
+                        ){
+                            Text(text = "Computer")
+                        }
+                    }
+
+                    Reset(
+                        modifier = Modifier
+                    ){
+                        onResetClick()
+                    }
                 }
             }
         }
