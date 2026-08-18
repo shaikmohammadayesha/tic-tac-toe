@@ -4,5 +4,6 @@
     <string name="computer_mode">Computer</string>
     <string name="current_player">Player %s</string>
     <string name="winner_is">Player %s wins</string>
-    <string name="select_game_mode">Select game mode</string>
+    <string name="select_game_mode">Select Game Mode</string>
+    <string name="draw">Draw</string>
 </resources>
